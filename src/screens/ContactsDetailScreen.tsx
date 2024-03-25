@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp } from '@react-navigation/native';
 import { NavigationProp } from '@react-navigation/native';
@@ -47,7 +47,7 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
   const handleSolanaAddressPress = () => {
     // Eğer adres kaydedilmişse, gönderme ekranına yönlendir
     if (isAddressSaved) {
-      navigation.navigate('sendSolScreen', { solanaAddress });
+      navigation.navigate('SendSolScreen', { solanaAddress });
     }
   };
 
@@ -58,22 +58,18 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={contact.thumbnailPath ? { uri: contact.thumbnailPath } : require('../assets/Phantom.png')}
-          style={styles.contactImage}
-        />
-        
+      <ImageBackground
+        source={contact.thumbnailPath ? { uri: contact.thumbnailPath } : require('../assets/Phantom.png')}
+        style={styles.backgroundImage}
+      >
+        {/* İsim ve soyisim kısmını birleştir ve fotoğrafın altına taşı */}
+        <Text style={styles.name}>{`${contact.givenName} ${contact.familyName}`}</Text>
         <TouchableOpacity style={styles.favoriteButton}>
-          <Image source={require('../assets/favorite.png')} style={styles.favoriteIcon} />
+          <Image source={require('../assets/favoritee.png')} style={styles.favoriteIcon} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.pointsButton}>
-          <Image source={require('../assets/points.png')} style={styles.pointsIcon} />
-        </TouchableOpacity>
-      </View>
-      
-      <Text style={styles.name}>{`${contact.givenName} ${contact.familyName}`}</Text>
-      
+      </ImageBackground>
+
+      {/* Geri kalan detaylar */}
       <View style={styles.infoContainer}>
         <TouchableOpacity>
           <Image source={require('../assets/phone.png')} style={styles.icon} />
@@ -85,7 +81,7 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
         <Image source={require('../assets/email.png')} style={styles.emailIcon} />
         <Text style={styles.infoText}>{contact.emailAddresses[0]?.email}</Text>
       </View>
-      
+
       <View style={styles.solanaContainer}>
         <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
         <TextInput
@@ -99,7 +95,7 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
       </View>
-      
+
       {/* Kaydedilmiş Solana adresinin kısmen gösterildiği bölüm */}
       {isAddressSaved && solanaAddress ? (
         <View style={styles.solanaSavedContainer}>
@@ -115,28 +111,32 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    width: '100%',
+    aspectRatio: 1.5, // Resmi kare olarak ayarlayabilir veya oranı değiştirebilirsiniz.
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  imageContainer: {
-    backgroundColor: '#e0e0e0',
-    position: 'relative',
-  },
-  contactImage: {
-    width: '100%',
-    aspectRatio: 16 / 12,
-  },
   name: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#fff', // İsim metninin rengi
     textAlign: 'center',
-    marginTop: -30,
-    backgroundColor: '#fff',
+    marginTop: 190, // İsimin üstündeki mesafe
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // İsim ve ikonun üzerinde hafif bir karartma efekti
     width: '100%',
-    padding: 10,
-  },
+    padding: 20,
+    flexDirection: 'row', // İsim ve favori ikonunu yan yana göstermek için
+    justifyContent: 'space-between', // İsim ve favori ikonunu sağa yaslamak için
+    alignItems: 'center', // Dikey hizalamayı ortalamak için
+    paddingLeft: 20, // İsimden soldaki boşluk
+    paddingRight: 20, // Favori ikonundan sağdaki boşluk
+  },  
+  
   infoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -154,28 +154,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
   },
-  favoriteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 60,
-    borderRadius: 15,
-    padding: 5,
-  },
-  pointsButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    borderRadius: 15,
-    padding: 5,
-  },
-  favoriteIcon: {
-    width: 30,
-    height: 30,
-  },
-  pointsIcon: {
-    width: 30,
-    height: 30,
-  },
   emailIcon: {
     width: 24,
     height: 24,
@@ -192,17 +170,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width:0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 5,
-  },
-  solanaIcon: {
+    },
+    solanaIcon: {
     width: 24,
     height: 24,
     marginRight: 10,
-  },
-  solanaInput: {
+    },
+    solanaInput: {
     flex: 1,
     height: 40,
     borderColor: '#3d58d1',
@@ -211,36 +189,25 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     color: '#2c3e50',
-  },
-  saveButton: {
+    },
+    saveButton: {
     backgroundColor: '#3d58d1',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginLeft: 10,
-    shadowColor:'#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 5,
-  },
-  saveButtonText: {
+    },
+    saveButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  solanaAddressContainer: {
-    backgroundColor: '#E2F1FC',
-    margin: 10,
-    padding: 10,
-    borderRadius: 5,
-  },
-  solanaAddressText: {
-    color: '#0055FF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  solanaSavedContainer: {
+    },
+    solanaSavedContainer: {
     backgroundColor: '#3d58d1',
     margin: 10,
     borderRadius: 5,
@@ -249,18 +216,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 5,
-  },
-  solanaAddressButton: {
+    },
+    solanaAddressButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-  },
-  solanaAddressButtonText: {
+    },
+    solanaAddressButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-});
-
-export default ContactsDetailScreen;
-
+    },
+    favoriteButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    },
+    favoriteIcon: {
+    width: 30,
+    height: 30,
+    },
+    });
+    
+    export default ContactsDetailScreen;
