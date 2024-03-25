@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Image, View, TouchableOpacity, Linking, StyleSheet } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { View, TouchableOpacity, Text, StyleSheet, Linking, Image } from 'react-native';
 import base58 from 'bs58';
-import nacl from 'tweetnacl'; // tweetnacl paketini içe aktarın
-import { ImageRequireSource } from 'react-native';
+import nacl from 'tweetnacl';
 import 'react-native-get-random-values';
 
-interface ImagePressProps {
-  onPress: () => void;
-  image: ImageRequireSource;
-}
+// Örnek olarak assets klasöründen phantom.png'yi import ediyoruz
+const phantomIcon = require('../assets/Phantom.png');
 
 const HomeScreen: React.FC = () => {
   const [dappKeyPair, setDappKeyPair] = useState<nacl.BoxKeyPair | null>(null);
@@ -17,7 +13,6 @@ const HomeScreen: React.FC = () => {
   useEffect(() => {
     const generateRandomKeyPair = () => {
       try {
-        // tweetnacl kullanarak rastgele bir anahtar çifti oluşturun.
         const newKeyPair = nacl.box.keyPair();
         setDappKeyPair(newKeyPair);
       } catch (error) {
@@ -27,19 +22,18 @@ const HomeScreen: React.FC = () => {
   
     generateRandomKeyPair();
   }, []);
-  
 
   const handleConnectPhantom = async () => {
     if (dappKeyPair) {
       const params = new URLSearchParams({
         dapp_encryption_public_key: base58.encode(dappKeyPair.publicKey),
-        cluster: 'mainnet-beta', // Testnet için
+        cluster: 'mainnet-beta',
         app_url: 'https://phantom.app',
-        redirect_link: 'myapp://onConnect', // Özel URL şemanızı buraya ekleyin
+        redirect_link: 'myapp://onConnect',
       });
-  
-      const connectUrl = `${'phantom://'}v1/connect?${params.toString()}`;
-  
+
+      const connectUrl = `phantom://v1/connect?${params.toString()}`;
+
       try {
         await Linking.openURL(connectUrl);
       } catch (error) {
@@ -47,27 +41,19 @@ const HomeScreen: React.FC = () => {
       }
     }
   };
-  
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {dappKeyPair && (
-          <ImagePress
-            image={require('../assets/solana.webp')}
-            onPress={handleConnectPhantom}
-          />
-        )}
+        <TouchableOpacity style={styles.button} onPress={handleConnectPhantom}>
+          {/* Phantom ikonunu metnin başına ekleyin */}
+          <Image source={phantomIcon} style={styles.icon} />
+          <Text style={styles.buttonText}>Connect Your Phantom Wallet</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const ImagePress: React.FC<ImagePressProps> = ({ onPress, image }) => (
-  <TouchableOpacity onPress={onPress}>
-    <Image source={image} style={styles.image} resizeMode="contain" />
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -78,9 +64,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
-  image: {
-    width: 200,
-    height: 200,
+  button: {
+    flexDirection: 'row', // İkon ve metni yan yana getirmek için
+    alignItems: 'center', // İkon ve metni dikey olarak ortalar
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18, // Metin boyutunu artırın
+    fontWeight: 'bold',
+    marginLeft: 10, // İkon ve metin arasında boşluk bırakın
+  },
+  icon: {
+    width: 24, // İkon boyutunu ayarlayın
+    height: 24, // İkon boyutunu ayarlayın
   },
 });
 
