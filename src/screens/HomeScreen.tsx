@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, Linking, StyleSheet, Text, Image } from 'react-native';
+import { Image, View, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import { useDispatch } from 'react-redux';
 import base58 from 'bs58';
 import nacl from 'tweetnacl'; // tweetnacl paketini içe aktarın
 import { ImageRequireSource } from 'react-native';
-
+import 'react-native-get-random-values';
 
 interface ImagePressProps {
   onPress: () => void;
@@ -32,14 +33,13 @@ const HomeScreen: React.FC = () => {
     if (dappKeyPair) {
       const params = new URLSearchParams({
         dapp_encryption_public_key: base58.encode(dappKeyPair.publicKey),
-        cluster: 'mainnet-beta', // Testnete bağlanmak için cluster parametresini testnet olarak ayarlayın
+        cluster: 'mainnet-beta', // Testnet için
         app_url: 'https://phantom.app',
-        redirect_link: 'nftTracker://onConnect',
+        redirect_link: 'myapp://onConnect', // Özel URL şemanızı buraya ekleyin
       });
-
-      // Phantom cüzdanını bağlamak için uygun URL'yi açın
+  
       const connectUrl = `${'phantom://'}v1/connect?${params.toString()}`;
-
+  
       try {
         await Linking.openURL(connectUrl);
       } catch (error) {
@@ -47,20 +47,27 @@ const HomeScreen: React.FC = () => {
       }
     }
   };
+  
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         {dappKeyPair && (
-          <TouchableOpacity onPress={handleConnectPhantom} style={styles.button}>
-            <Image source={require('../assets/Phantom.png')} style={styles.image} resizeMode="contain" />
-            <Text style={styles.buttonText}>Connect your Phantom Wallet</Text>
-          </TouchableOpacity>
+          <ImagePress
+            image={require('../assets/solana.webp')}
+            onPress={handleConnectPhantom}
+          />
         )}
       </View>
     </View>
   );
 };
+
+const ImagePress: React.FC<ImagePressProps> = ({ onPress, image }) => (
+  <TouchableOpacity onPress={onPress}>
+    <Image source={image} style={styles.image} resizeMode="contain" />
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -71,24 +78,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#0D233B',
-    borderRadius: 8,
-  },
   image: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    width: 200,
+    height: 200,
   },
 });
 
