@@ -3,10 +3,15 @@ import { View, FlatList, Text, Image, TextInput, StyleSheet, PermissionsAndroid,
 import Contacts, { Contact } from 'react-native-contacts';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   ContactsDetailScreen: { contact: Contact };
 };
+
+interface ExtendedContact extends Contact {
+  solanaAddress?: string;
+}
 
 type ContactsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ContactsDetailScreen'>;
 
@@ -37,13 +42,13 @@ const ContactsScreen: React.FC = () => {
   const loadContacts = async () => {
     try {
       const contactsData = await Contacts.getAll();
-      const sortedContacts = contactsData.sort((a, b) => {
-        const nameA = (a.givenName + ' ' + a.familyName).toLowerCase();
-        const nameB = (b.givenName + ' ' + b.familyName).toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
-      setContacts(sortedContacts);
-      setFilteredContacts(sortedContacts);
+      const contactsWithAddress = await Promise.all(contactsData.map(async (contact) => {
+        const solanaAddress = await AsyncStorage.getItem(`solanaAddress_${contact.recordID}`);
+        return { ...contact, solanaAddress }; // Include Solana address in the contact object
+      }));
+
+      setContacts(contactsWithAddress);
+      setFilteredContacts(contactsWithAddress); // Set filtered contacts initially
     } catch (error) {
       console.error('Error loading contacts:', error);
     }
@@ -51,22 +56,11 @@ const ContactsScreen: React.FC = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // İlk olarak sorgu ile başlayan kişileri filtrele
-    const startsWithFilter = contacts.filter(contact =>
-      contact.givenName.toLowerCase().startsWith(query.toLowerCase()) ||
-      contact.familyName.toLowerCase().startsWith(query.toLowerCase())
+    const filtered = contacts.filter(contact =>
+      contact.givenName.toLowerCase().includes(query.toLowerCase()) ||
+      contact.familyName.toLowerCase().includes(query.toLowerCase())
     );
-  
-    // Ardından sorguyu içeren ama ile başlamayan kişileri filtrele
-    const includesFilter = contacts.filter(contact =>
-      (contact.givenName.toLowerCase().includes(query.toLowerCase()) ||
-      contact.familyName.toLowerCase().includes(query.toLowerCase())) &&
-      !startsWithFilter.includes(contact) // Daha önce başlayanlar listesine alınmamış kişiler
-    );
-  
-    // İki listeyi birleştir
-    const filteredContacts = [...startsWithFilter, ...includesFilter];
-    setFilteredContacts(filteredContacts);
+    setFilteredContacts(filtered);
   };
 
   const renderItem = ({ item }: { item: Contact }) => (
@@ -87,7 +81,7 @@ const ContactsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <Image style={styles.menuIcon} source={require('../assets/menu.png')}/>
+        <Image style={styles.menuIcon} source={require('../assets/menu.png')} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search for people"
@@ -130,7 +124,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     height: 50,
     padding: 10,
-    fontSize:18
+    fontSize: 18,
   },
   card: {
     flexDirection: 'row',
@@ -138,15 +132,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#fff',
     borderRadius: 10,
-    borderBottomWidth:0.25,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    // elevation: 1,
+    borderBottomWidth: 0.25,
+    // shadowColor: '#000',
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.22,
+    // shadowRadius: 2.22,
+    // elevation: 3,
   },
   cardContent: {
     justifyContent: 'center',

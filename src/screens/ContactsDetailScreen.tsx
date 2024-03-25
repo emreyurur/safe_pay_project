@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Contact } from 'react-native-contacts';
 
 interface ContactDetailProps {
@@ -10,8 +11,10 @@ interface ContactDetailProps {
   };
 }
 
-const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route }) => {
+const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation }) => {
   const { contact } = route.params;
+  const [solanaAddress, setSolanaAddress] = useState<string>('');
+  const [isAddressSaved, setIsAddressSaved] = useState<boolean>(false);
 
   const favoriteIcon = require('../assets/favorite.png');
   const phoneIcon = require('../assets/phone.png');
@@ -20,18 +23,36 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route }) => {
   const pointsIcon = require('../assets/points.png');
   const solanaIcon = require('../assets/solana.webp');
 
-  if (!contact) {
-    return (
-      <View style={styles.container}>
-        <Text>Contact not found!</Text>
-      </View>
-    );
-  }
+  useEffect(() => {
+    // Kaydedilmiş Solana adresini al
+    const getSavedAddress = async () => {
+      try {
+        const savedAddress = await AsyncStorage.getItem(`solanaAddress_${contact}`);
+        if (savedAddress !== null) {
+          setSolanaAddress(savedAddress);
+          setIsAddressSaved(true);
+        }
+      } catch (error) {
+        console.error('Error retrieving saved Solana address:', error);
+      }
+    };
 
-  const handleSaveAddress = (address: string) => {
-    // Burada Solana adresini kaydetme işlemleri yapılabilir
-    console.log('Saved Solana address:', address);
-    // Örnek olarak konsola kaydedildiğini gösterelim
+    getSavedAddress();
+  }, []);
+
+  const handleSaveAddress = async () => {
+    try {
+      await AsyncStorage.setItem(`solanaAddress_${contact}`, solanaAddress);
+      console.log('Saved Solana address:', solanaAddress);
+      setIsAddressSaved(true);
+    } catch (error) {
+      console.error('Error saving Solana address:', error);
+    }
+  };
+
+  const handleSolanaAddressPress = () => {
+    // sendSolScreen ekranına yönlendirme işlemi
+    navigation.navigate('sendSolScreen', { solanaAddress });
   };
 
   return (
@@ -64,18 +85,26 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route }) => {
       </View>
 
       <View style={styles.solanaContainer}>
-  <Image source={solanaIcon} style={styles.solanaIcon} />
-  <TextInput
-    style={styles.solanaInput}
-    placeholder='Enter your Solana address'
-    placeholderTextColor='#7f8c8d' // Gri ton bir placeholder rengi
-    // onChangeText={setSolanaAddress} // Girilen değeri state'e kaydet
-    // value={solanaAddress} // TextInput'un değeri
-  />
-  <TouchableOpacity style={styles.saveButton} onPress={handleSaveAddress}>
-    <Text style={styles.saveButtonText}>Save</Text>
-  </TouchableOpacity>
-</View>
+        <Image source={solanaIcon} style={styles.solanaIcon} />
+        <TextInput
+          style={styles.solanaInput}
+          placeholder='Enter your Solana address'
+          placeholderTextColor='#7f8c8d'
+          onChangeText={setSolanaAddress}
+          value={solanaAddress}
+        />
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveAddress}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      {isAddressSaved && solanaAddress ? (
+        <TouchableOpacity onPress={handleSolanaAddressPress}>
+          <View style={styles.solanaAddressContainer}>
+            <Text style={styles.solanaAddressText}>{`Solana Address: ${solanaAddress}`}</Text>
+          </View>
+        </TouchableOpacity>
+      ) : null}
     </ScrollView>
   );
 };
@@ -94,7 +123,7 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 12,
   },
   name: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',
@@ -151,17 +180,17 @@ const styles = StyleSheet.create({
   solanaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff', // Beyaz arkaplan
-    borderRadius: 5, // Köşeleri yuvarlat
+    backgroundColor: '#fff',
+    borderRadius: 5,
     margin: 10,
-    marginTop:10,
+    marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 5, // Android için gölge efekti
+    elevation: 5,
   },
   solanaIcon: {
     width: 24,
@@ -170,28 +199,39 @@ const styles = StyleSheet.create({
   },
   solanaInput: {
     flex: 1,
-    height: 40, // Yeterli alan sağlamak için
-    borderColor: '#3d58d1', // Solana mavisi tonu
+    height: 40,
+    borderColor: '#3d58d1',
     borderWidth: 1,
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
-    color: '#2c3e50', // Karanlık gri metin rengi
+    color: '#2c3e50',
   },
   saveButton: {
-    backgroundColor: '#3d58d1', // Solana mavisi tonu
+    backgroundColor: '#3d58d1',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginLeft: 10,
-    shadowColor: '#000',
+    shadowColor:'#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 5, // Android için gölge efekti
+    elevation: 5,
   },
   saveButtonText: {
-    color: '#fff', // Beyaz metin
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  solanaAddressContainer: {
+    backgroundColor: '#E2F1FC',
+    margin: 10,
+    padding: 10,
+    borderRadius: 5,
+  },
+  solanaAddressText: {
+    color: '#0055FF',
     fontSize: 16,
     fontWeight: 'bold',
   },
