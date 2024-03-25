@@ -45,7 +45,7 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
   };
 
   const handleSolanaAddressPress = () => {
-    // Eğer adres kaydedilmişse, gönderme ekranına yönlendir
+    // Eğer adres kaydedilmişse, gönderme ekranına yönlendi
     if (isAddressSaved) {
       navigation.navigate('SendSolScreen', { solanaAddress });
     }

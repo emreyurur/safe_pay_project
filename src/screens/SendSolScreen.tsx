@@ -11,31 +11,43 @@ interface SendSolScreenProps {
   navigation: any;
 }
 
-const SendSolScreen: React.FC<SendSolScreenProps> = ({ route, navigation }) => {
+const SendSolScreen: React.FC<SendSolScreenProps> = ({ route }) => {
   const { solanaAddress } = route.params;
   const [amount, setAmount] = useState<string>('');
 
   const sendSol = async () => {
-    const senderKeypair = Keypair.generate();
-
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-    const recipientPublicKey = new PublicKey(solanaAddress);
-
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: senderKeypair.publicKey,
-        toPubkey: recipientPublicKey,
-        lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
-      }),
-    );
-
     try {
-      const signature = await connection.sendTransaction(transaction, [senderKeypair], { skipPreflight: false, preflightCommitment: "confirmed" });
-      await connection.confirmTransaction(signature, 'confirmed');
-      Alert.alert(`Transaction successful with signature: ${signature}`);
+      // Gerçek cüzdanınızın özel anahtarını buraya girin
+      const senderSecretKey = Uint8Array.from([230,173,29,158,29,105,44,139,121,105,169,23,47,25,224,241,55,0,175,13,249,160,15,3,126,90,36,63,255,237,11,133,229,53,151,60,33,63,151,56,9,187,70,171,67,166,11,175,226,24,178,163,119,228,169,251,144,134,127,146,162,172,86,166]);
+      const senderKeypair = Keypair.fromSecretKey(senderSecretKey);
+
+      const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+      const recipientPublicKey = new PublicKey(solanaAddress);
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: senderKeypair.publicKey,
+          toPubkey: recipientPublicKey,
+          lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
+        }),
+      );
+
+      // Son blok hash'ini alın ve işlemi imzalayın
+      let { blockhash } = await connection.getRecentBlockhash('finalized');
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = senderKeypair.publicKey;
+
+      // İşlemi imzala
+      let signedTransaction = transaction.sign(senderKeypair);
+
+      // İşlemi gönder ve bekle
+      let signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      await connection.confirmTransaction(signature, 'finalized');
+
+      Alert.alert("Success", `Transaction successful with signature: ${signature}`);
     } catch (error) {
-      console.error('Error sending SOL:', error);
-      Alert.alert('Transaction failed');
+      console.error('Transaction Error:', error);
+      Alert.alert("Error", `Transaction failed: ${error.message}`);
     }
   };
 
