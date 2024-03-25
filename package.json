@@ -45,6 +45,7 @@
     "@tsconfig/react-native": "^3.0.4",
     "@types/jest": "^29.5.12",
     "@types/react": "^18.2.69",
+    "@types/react-native-get-random-values": "^1.8.2",
     "@types/react-test-renderer": "^18.0.7",
     "babel-jest": "^29.6.3",
     "eslint": "^8.19.0",

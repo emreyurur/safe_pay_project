@@ -1,6 +1,5 @@
-import 'react-native-get-random-values';
 import React, { useEffect, useState } from 'react';
-import { Image, View, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Linking, StyleSheet, Text, Image } from 'react-native';
 import base58 from 'bs58';
 import nacl from 'tweetnacl'; // tweetnacl paketini içe aktarın
 import { ImageRequireSource } from 'react-native';
@@ -53,21 +52,15 @@ const HomeScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.content}>
         {dappKeyPair && (
-          <ImagePress
-            image={require('../assets/solana.webp')}
-            onPress={handleConnectPhantom}
-          />
+          <TouchableOpacity onPress={handleConnectPhantom} style={styles.button}>
+            <Image source={require('../assets/Phantom.png')} style={styles.image} resizeMode="contain" />
+            <Text style={styles.buttonText}>Connect your Phantom Wallet</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
   );
 };
-
-const ImagePress: React.FC<ImagePressProps> = ({ onPress, image }) => (
-  <TouchableOpacity onPress={onPress}>
-    <Image source={image} style={styles.image} resizeMode="contain" />
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -78,9 +71,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#0D233B',
+    borderRadius: 8,
+  },
   image: {
-    width: 200,
-    height: 200,
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

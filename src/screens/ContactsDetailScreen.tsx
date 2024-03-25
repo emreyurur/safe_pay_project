@@ -1,33 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Contact } from 'react-native-contacts';
+import { RouteProp } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from './RootStackParamList'; // Assuming you have a RootStackParamList type
 
-interface ContactDetailProps {
-  route: {
-    params: {
-      contact: Contact;
-    };
-  };
-}
+type ContactDetailScreenRouteProp = RouteProp<RootStackParamList, 'ContactsDetail'>;
+
+type ContactDetailProps = {
+  route: ContactDetailScreenRouteProp;
+  navigation: NavigationProp<RootStackParamList>;
+};
 
 const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation }) => {
   const { contact } = route.params;
   const [solanaAddress, setSolanaAddress] = useState<string>('');
   const [isAddressSaved, setIsAddressSaved] = useState<boolean>(false);
 
-  const favoriteIcon = require('../assets/favorite.png');
-  const phoneIcon = require('../assets/phone.png');
-  const emailIcon = require('../assets/email.png');
-  const messageIcon = require('../assets/message.png');
-  const pointsIcon = require('../assets/points.png');
-  const solanaIcon = require('../assets/solana.webp');
-
   useEffect(() => {
     // Kaydedilmiş Solana adresini al
     const getSavedAddress = async () => {
       try {
-        const savedAddress = await AsyncStorage.getItem(`solanaAddress_${contact}`);
+        const savedAddress = await AsyncStorage.getItem(`solanaAddress_${contact.recordID}`);
         if (savedAddress !== null) {
           setSolanaAddress(savedAddress);
           setIsAddressSaved(true);
@@ -41,18 +35,25 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
   }, []);
 
   const handleSaveAddress = async () => {
+    // AsyncStorage'e adresi kaydet
     try {
-      await AsyncStorage.setItem(`solanaAddress_${contact}`, solanaAddress);
+      await AsyncStorage.setItem(`solanaAddress_${contact.recordID}`, solanaAddress);
       console.log('Saved Solana address:', solanaAddress);
-      setIsAddressSaved(true);
     } catch (error) {
       console.error('Error saving Solana address:', error);
     }
   };
 
   const handleSolanaAddressPress = () => {
-    // sendSolScreen ekranına yönlendirme işlemi
-    navigation.navigate('sendSolScreen', { solanaAddress });
+    // Eğer adres kaydedilmişse, gönderme ekranına yönlendir
+    if (isAddressSaved) {
+      navigation.navigate('sendSolScreen', { solanaAddress });
+    }
+  };
+
+  const displayPartialAddress = (address: string) => {
+    const maxLength = 15; // Maksimum karakter sayısı
+    return address.length > maxLength ? `${address.substring(0, maxLength)}...` : address;
   };
 
   return (
@@ -62,11 +63,12 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
           source={contact.thumbnailPath ? { uri: contact.thumbnailPath } : require('../assets/Phantom.png')}
           style={styles.contactImage}
         />
+        
         <TouchableOpacity style={styles.favoriteButton}>
-          <Image source={favoriteIcon} style={styles.favoriteIcon} />
+          <Image source={require('../assets/favorite.png')} style={styles.favoriteIcon} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.pointsButton}>
-          <Image source={pointsIcon} style={styles.pointsIcon} />
+          <Image source={require('../assets/points.png')} style={styles.pointsIcon} />
         </TouchableOpacity>
       </View>
       
@@ -74,18 +76,18 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
       
       <View style={styles.infoContainer}>
         <TouchableOpacity>
-          <Image source={phoneIcon} style={styles.icon} />
+          <Image source={require('../assets/phone.png')} style={styles.icon} />
         </TouchableOpacity>
         <Text style={styles.infoText}>{contact.phoneNumbers[0]?.number}</Text>
       </View>
 
       <View style={styles.infoContainer}>
-        <Image source={emailIcon} style={styles.emailIcon} />
+        <Image source={require('../assets/email.png')} style={styles.emailIcon} />
         <Text style={styles.infoText}>{contact.emailAddresses[0]?.email}</Text>
       </View>
-
+      
       <View style={styles.solanaContainer}>
-        <Image source={solanaIcon} style={styles.solanaIcon} />
+        <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
         <TextInput
           style={styles.solanaInput}
           placeholder='Enter your Solana address'
@@ -97,13 +99,16 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
       </View>
-
+      
+      {/* Kaydedilmiş Solana adresinin kısmen gösterildiği bölüm */}
       {isAddressSaved && solanaAddress ? (
-        <TouchableOpacity onPress={handleSolanaAddressPress}>
-          <View style={styles.solanaAddressContainer}>
-            <Text style={styles.solanaAddressText}>{`Solana Address: ${solanaAddress}`}</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.solanaSavedContainer}>
+          <TouchableOpacity onPress={handleSolanaAddressPress} style={styles.solanaAddressButton}>
+            <Text style={styles.solanaAddressButtonText}>
+              {`Solana Address: ${displayPartialAddress(solanaAddress)}`}
+            </Text>
+          </TouchableOpacity>
+        </View>
       ) : null}
     </ScrollView>
   );
@@ -235,6 +240,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  solanaSavedContainer: {
+    backgroundColor: '#3d58d1',
+    margin: 10,
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  solanaAddressButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  solanaAddressButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
 
 export default ContactsDetailScreen;
+
