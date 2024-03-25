@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   ContactsDetailScreen: { contact: Contact };
+  SendSolScreen: { solanaAddress: string };
 };
 
 interface ExtendedContact extends Contact {
@@ -16,8 +17,8 @@ interface ExtendedContact extends Contact {
 type ContactsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ContactsDetailScreen'>;
 
 const ContactsScreen: React.FC = () => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
+  const [contacts, setContacts] = useState<ExtendedContact[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<ExtendedContact[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const navigation = useNavigation<ContactsScreenNavigationProp>();
 
@@ -63,7 +64,11 @@ const ContactsScreen: React.FC = () => {
     setFilteredContacts(filtered);
   };
 
-  const renderItem = ({ item }: { item: Contact }) => (
+  const handleSolanaAddressPress = (solanaAddress: string) => {
+    navigation.navigate('SendSolScreen', { solanaAddress });
+  };
+
+  const renderItem = ({ item }: { item: ExtendedContact }) => (
     <TouchableOpacity onPress={() => navigation.navigate('ContactsDetailScreen', { contact: item })}>
       <View style={styles.card}>
         <Image
@@ -73,6 +78,12 @@ const ContactsScreen: React.FC = () => {
         <View style={styles.cardContent}>
           <Text style={styles.name}>{`${item.givenName} ${item.familyName}`}</Text>
           {item.jobTitle && <Text style={styles.jobTitle}>{item.jobTitle}</Text>}
+          {item.solanaAddress && (
+            <TouchableOpacity style={styles.solanaAddressContainer} onPress={() => handleSolanaAddressPress(item.solanaAddress)}>
+              <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
+              <Text style={styles.solanaAddressText}>{`Solana Address: ${item.solanaAddress.substring(0, 15)}...`}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -158,6 +169,19 @@ const styles = StyleSheet.create({
   jobTitle: {
     color: 'grey',
   },
+  solanaAddressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  solanaIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
+  },
+  solanaAddressText: {
+    color: 'blue',
+  },
 });
 
 export default ContactsScreen;
+
