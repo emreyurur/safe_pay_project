@@ -7,8 +7,17 @@ import 'react-native-get-random-values';
 // Örnek olarak assets klasöründen phantom.png'yi import ediyoruz
 const phantomIcon = require('../assets/Phantom.png');
 
-const HomeScreen: React.FC = () => {
+interface HomeScreenProps {
+  route: {
+    params: {
+      transactionSignature?: string; // Opsiyonel olarak alınan parametre
+    };
+  };
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ route }) => {
   const [dappKeyPair, setDappKeyPair] = useState<nacl.BoxKeyPair | null>(null);
+  const transactionSignature = route.params?.transactionSignature;
 
   useEffect(() => {
     const generateRandomKeyPair = () => {
@@ -51,6 +60,12 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.buttonText}>Connect Your Phantom Wallet</Text>
         </TouchableOpacity>
       </View>
+      {transactionSignature && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Last Transaction Confirmed</Text>
+          <Text style={styles.cardContent}>Signature: {transactionSignature}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -81,6 +96,22 @@ const styles = StyleSheet.create({
   icon: {
     width: 24, // İkon boyutunu ayarlayın
     height: 24, // İkon boyutunu ayarlayın
+  },
+  card: {
+    marginTop: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  cardContent: {
+    fontSize: 16,
   },
 });
 
