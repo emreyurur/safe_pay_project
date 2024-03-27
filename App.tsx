@@ -19,7 +19,7 @@ import SendSolScreen from "./src/screens/SendSolScreen";
 const homeIcon = require('./src/assets/home_icon.png');
 const contactsIcon = require('./src/assets/contacts.png');
 const safePayIcon = require('./src/assets/payment.png');
-const favoritesIcon = require('./src/assets/favorite.png');
+const favoritesIcon = require('./src/assets/favoritee.png');
 
 const App = () => {
   return (

@@ -53,13 +53,16 @@ const SendSolScreen: React.FC<SendSolScreenProps> = ({ route, navigation }) => {
 
       await connection.confirmTransaction(signature, 'finalized');
       setTransactionSignature(signature);
-
-      // HomeScreen'e yönlendir ve işlem imzasını parametre olarak gönder
-      navigation.navigate('HomeScreen', { transactionSignature: signature });
+      
+      // Home tab'ine yönlendir ve işlem imzasını parametre olarak gönder
+      navigation.navigate('TabNavigator', {
+        screen: 'Home',
+        params: { transactionSignature: signature },
+      });
 
 
       Alert.alert("Success", `Transaction successful with signature: ${signature}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction error:', error);
       Alert.alert("Error", `Transaction failed: ${error.message}`);
     }
