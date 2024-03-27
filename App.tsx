@@ -15,6 +15,7 @@ import FavoritesScreen from "./src/screens/FavoritesScreen";
 // import SendScreen from "./src/screens/SendScreen";
 import ContactsDetailScreen from "./src/screens/ContactsDetailScreen";
 import SendSolScreen from "./src/screens/SendSolScreen";
+import TransactionDetailScreen from './src/screens/TransactionDetailScreen';
 
 const homeIcon = require('./src/assets/home_icon.png');
 const contactsIcon = require('./src/assets/contacts.png');
@@ -29,6 +30,7 @@ const App = () => {
         {/* <Stack.Screen name="SendScreen" component={SendScreen} /> */}
         <Stack.Screen name="ContactsDetailScreen" component={ContactsDetailScreen}/>
         <Stack.Screen name="SendSolScreen" component={SendSolScreen}/>
+        <Stack.Screen name="TransactionDetailScreen" component={TransactionDetailScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

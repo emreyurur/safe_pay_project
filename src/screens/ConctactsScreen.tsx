@@ -40,6 +40,14 @@ const ContactsScreen: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Your code to check for a new address and update the state accordingly
+    });
+  
+    return unsubscribe;
+  }, [navigation]);
+
   const loadContacts = async () => {
     try {
       const contactsData = await Contacts.getAll();

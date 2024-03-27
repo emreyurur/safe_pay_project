@@ -55,9 +55,10 @@ const SendSolScreen: React.FC<SendSolScreenProps> = ({ route, navigation }) => {
       setTransactionSignature(signature);
       
       // Home tab'ine yönlendir ve işlem imzasını parametre olarak gönder
-      navigation.navigate('TabNavigator', {
-        screen: 'Home',
-        params: { transactionSignature: signature },
+      navigation.navigate('TransactionDetailScreen', {
+        transactionSignature: signature,
+        amount: amount,
+        date: Date.now(), // capturing the current date and time of the transaction
       });
 
 
@@ -86,7 +87,7 @@ const SendSolScreen: React.FC<SendSolScreenProps> = ({ route, navigation }) => {
         />
       </View>
       <TouchableOpacity style={styles.button} onPress={sendSol}>
-        <Text style={styles.buttonText}>Send</Text>
+        <Text style={styles.buttonText}>Pay</Text>
       </TouchableOpacity>
       {transactionSignature && (
         <View style={styles.card}>
@@ -108,14 +109,15 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 25,
     textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 15,
   },
   label: {
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight:"bold",
     color: '#333',
     marginBottom: 5,
   },
