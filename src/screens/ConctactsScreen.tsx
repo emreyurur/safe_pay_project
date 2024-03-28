@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Text, Image, TextInput, StyleSheet, PermissionsAndroid, Platform, TouchableOpacity } from 'react-native';
 import Contacts, { Contact } from 'react-native-contacts';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,7 +18,6 @@ type ContactsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList
 
 const ContactsScreen: React.FC = () => {
   const [contacts, setContacts] = useState<ExtendedContact[]>([]);
-  const [filteredContacts, setFilteredContacts] = useState<ExtendedContact[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const navigation = useNavigation<ContactsScreenNavigationProp>();
 
@@ -40,13 +39,12 @@ const ContactsScreen: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      // Your code to check for a new address and update the state accordingly
-    });
-  
-    return unsubscribe;
-  }, [navigation]);
+  // Use useFocusEffect to reload contacts whenever the screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      loadContacts();
+    }, [])
+  );
 
   const loadContacts = async () => {
     try {
@@ -56,20 +54,11 @@ const ContactsScreen: React.FC = () => {
         return { ...contact, solanaAddress }; // Include Solana address in the contact object
       }));
 
+      // Code to sort contacts and set state remains unchanged...
       setContacts(contactsWithAddress);
-      setFilteredContacts(contactsWithAddress); // Set filtered contacts initially
     } catch (error) {
       console.error('Error loading contacts:', error);
     }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    const filtered = contacts.filter(contact =>
-      contact.givenName.toLowerCase().includes(query.toLowerCase()) ||
-      contact.familyName.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredContacts(filtered);
   };
 
   const handleSolanaAddressPress = (solanaAddress: string) => {
@@ -88,14 +77,18 @@ const ContactsScreen: React.FC = () => {
           {item.jobTitle && <Text style={styles.jobTitle}>{item.jobTitle}</Text>}
           {item.solanaAddress && (
             <TouchableOpacity style={styles.solanaAddressContainer} onPress={() => handleSolanaAddressPress(item.solanaAddress)}>
-              <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
-              <Text style={styles.solanaAddressText}>{`Solana Address: ${item.solanaAddress.substring(0, 15)}...`}</Text>
+            <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
+            <Text style={styles.solanaAddressText}>{`Solana Address: ${item.solanaAddress.substring(0, 15)}...`}</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
     </TouchableOpacity>
   );
+
+  function handleSearch(text: string): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <View style={styles.container}>
@@ -110,7 +103,7 @@ const ContactsScreen: React.FC = () => {
         />
       </View>
       <FlatList
-        data={filteredContacts}
+        data={contacts}
         keyExtractor={(item) => item.recordID || ''}
         renderItem={renderItem}
       />
@@ -152,14 +145,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     borderBottomWidth: 0.25,
-    // shadowColor: '#000',
-    // shadowOffset: {
-    //   width: 0,
-    //   height: 1,
-    // },
-    // shadowOpacity: 0.22,
-    // shadowRadius: 2.22,
-    // elevation: 3,
   },
   cardContent: {
     justifyContent: 'center',

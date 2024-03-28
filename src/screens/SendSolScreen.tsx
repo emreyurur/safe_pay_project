@@ -89,6 +89,9 @@ const SendSolScreen: React.FC<SendSolScreenProps> = ({ route, navigation }) => {
       <TouchableOpacity style={styles.button} onPress={sendSol}>
         <Text style={styles.buttonText}>Pay</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={sendSol}>
+        <Text style={styles.buttonText}>Safe Pay</Text>
+      </TouchableOpacity>
       {transactionSignature && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Transaction Confirmed</Text>
@@ -143,6 +146,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
+    marginVertical:6
   },
   buttonText: {
     color: 'white',

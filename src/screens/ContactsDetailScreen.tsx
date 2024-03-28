@@ -35,15 +35,17 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
   }, []);
 
   const handleSaveAddress = async () => {
-    // AsyncStorage'e adresi kaydet
+    // Try to save the Solana address to AsyncStorage
     try {
       await AsyncStorage.setItem(`solanaAddress_${contact.recordID}`, solanaAddress);
       console.log('Saved Solana address:', solanaAddress);
+      // Immediately after saving, update the state to reflect the change
+      setIsAddressSaved(true); // This line makes the address appear without delay
     } catch (error) {
       console.error('Error saving Solana address:', error);
     }
   };
-
+  
   const handleSolanaAddressPress = () => {
     // Eğer adres kaydedilmişse, gönderme ekranına yönlendi
     if (isAddressSaved) {
@@ -86,7 +88,7 @@ const ContactsDetailScreen: React.FC<ContactDetailProps> = ({ route, navigation 
         <Image source={require('../assets/solana.webp')} style={styles.solanaIcon} />
         <TextInput
           style={styles.solanaInput}
-          placeholder='Enter your Solana address'
+          placeholder='Enter Solana address'
           placeholderTextColor='#7f8c8d'
           onChangeText={setSolanaAddress}
           value={solanaAddress}
